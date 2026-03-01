@@ -1,0 +1,45 @@
+{
+    "manifest_version": 3,
+    "name": "IRCTC Auto Captcha & Calendar",
+    "version": "1.0",
+    "description": "Solves captcha automatically and adds a calendar for train availability.",
+    "permissions": [
+        "storage",
+        "scripting",
+        "activeTab"
+    ],
+    "host_permissions": [
+        "*://www.indianrail.gov.in/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://www.indianrail.gov.in/enquiry/StaticPages/StaticEnquiry.jsp?StaticPage=index.html*",
+                "*://www.indianrail.gov.in/enquiry/StaticPages/StaticEnquiry.jsp?StaticPage=index.html&locale=en*"
+            ],
+            "js": [
+                "lib/tesseract.min.js",
+                "content.js"
+            ],
+            "css": [
+                "styles.css"
+            ]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "lib/tesseract.min.js",
+                "lib/worker.min.js",
+                "lib/tesseract-core.wasm.js",
+                "inject.js"
+            ],
+            "matches": [
+                "*://www.indianrail.gov.in/*"
+            ]
+        }
+    ]
+}

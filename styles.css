@@ -1,0 +1,8 @@
+/* Basic styling for injected UI elements */
+#irctc-ext-calendar-container {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
