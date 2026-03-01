@@ -153,7 +153,6 @@ window.erailFetchCalendar = async function (trainNo, classc, date, source, dest,
 
         console.log("[eRail API] Calendar Matrix:", data);
         return data;
-        return data;
     }
     throw new Error("Failed to solve captcha after multiple attempts");
 };
@@ -274,6 +273,8 @@ function injectAppUI() {
                     display: flex;
                     flex-direction: column;
                     gap: 12px;
+                    position: relative;
+                    z-index: 100;
                 }
 
                 .search-row {
@@ -514,10 +515,18 @@ function injectAppUI() {
                     <div style="width: 100%; border-top: 1px dashed rgba(255,255,255,0.2); margin: 6px 0;"></div>
                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%;">
                         <span style="color:#a1c4fd; font-weight:bold; font-size: 14px; margin-right: 4px;">Advanced Route Explorer</span>
-                        <input type="text" id="erail-adv-train" autocomplete="off" placeholder="Train (e.g. 12555)" style="width: 130px; padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white;">
-                        <input type="date" id="erail-adv-date" style="padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white;">
-                        <input type="text" id="erail-adv-src" autocomplete="off" placeholder="Boarding (e.g. NDLS)" style="width: 140px; padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white;">
-                        <input type="text" id="erail-adv-dst" autocomplete="off" placeholder="Dest (e.g. GKP)" style="width: 140px; padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white;">
+                        <div class="input-wrap">
+                            <input type="text" id="erail-adv-train" autocomplete="off" placeholder="Train (e.g. 12555)" style="width: 130px; padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white;">
+                        </div>
+                        <div class="input-wrap">
+                            <input type="date" id="erail-adv-date" style="padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white;">
+                        </div>
+                        <div class="input-wrap">
+                            <input type="text" id="erail-adv-src" autocomplete="off" placeholder="Boarding (e.g. NDLS)" style="width: 140px; padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white;">
+                        </div>
+                        <div class="input-wrap">
+                            <input type="text" id="erail-adv-dst" autocomplete="off" placeholder="Dest (e.g. GKP)" style="width: 140px; padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white;">
+                        </div>
                         <select id="erail-adv-class" style="padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white;">
                             <option value="1A">1A</option><option value="2A">2A</option><option value="3A">3A</option><option value="SL" selected>SL</option><option value="CC">CC</option><option value="2S">2S</option>
                         </select>
@@ -566,7 +575,7 @@ function injectAppUI() {
 
     const CLASS_COLS = ['1A', '2A', '3A', 'SL', '3E', 'CC', '2S'];
 
-    function setupAutocomplete(inputId) {
+    function setupAutocomplete(inputId, arrayName = 'erailStations') {
         const inputElement = document.getElementById(inputId);
         inputElement.addEventListener("input", function (e) {
             let a, b, i, val = this.value;
@@ -579,18 +588,18 @@ function injectAppUI() {
 
             this.parentNode.appendChild(a);
 
-            const stations = window.erailStations || [];
+            const dataList = window[arrayName] || [];
             let matches = 0;
             const searchVal = val.toUpperCase();
 
-            for (i = 0; i < stations.length; i++) {
-                if (stations[i].toUpperCase().includes(searchVal)) {
+            for (i = 0; i < dataList.length; i++) {
+                if (dataList[i].toUpperCase().includes(searchVal)) {
                     b = document.createElement("DIV");
-                    const matchIndex = stations[i].toUpperCase().indexOf(searchVal);
-                    b.innerHTML = stations[i].substring(0, matchIndex);
-                    b.innerHTML += "<strong>" + stations[i].substring(matchIndex, matchIndex + val.length) + "</strong>";
-                    b.innerHTML += stations[i].substring(matchIndex + val.length);
-                    b.innerHTML += "<input type='hidden' value='" + stations[i] + "'>";
+                    const matchIndex = dataList[i].toUpperCase().indexOf(searchVal);
+                    b.innerHTML = dataList[i].substring(0, matchIndex);
+                    b.innerHTML += "<strong>" + dataList[i].substring(matchIndex, matchIndex + val.length) + "</strong>";
+                    b.innerHTML += dataList[i].substring(matchIndex + val.length);
+                    b.innerHTML += "<input type='hidden' value='" + dataList[i] + "'>";
 
                     b.addEventListener("click", function (e) {
                         inputElement.value = this.getElementsByTagName("input")[0].value;
@@ -617,9 +626,16 @@ function injectAppUI() {
 
     async function loadStations() {
         try {
-            const url = `https://www.indianrail.gov.in/enquiry/FetchAutoComplete?_=${Date.now()}`;
-            const res = await fetchWithRetry(url);
-            window.erailStations = await res.json();
+            const urlStations = `https://www.indianrail.gov.in/enquiry/FetchAutoComplete?_=${Date.now()}`;
+            const urlTrains = `https://www.indianrail.gov.in/enquiry/FetchTrainData?_=${Date.now()}`;
+
+            const [resStations, resTrains] = await Promise.all([
+                fetchWithRetry(urlStations),
+                fetchWithRetry(urlTrains)
+            ]);
+
+            window.erailStations = await resStations.json();
+            window.erailTrains = await resTrains.json();
 
             document.getElementById('erail-src').placeholder = "NDLS";
             document.getElementById('erail-dst').placeholder = "GHY";
@@ -639,6 +655,7 @@ function injectAppUI() {
             setupAutocomplete('erail-dst');
             setupAutocomplete('erail-adv-src');
             setupAutocomplete('erail-adv-dst');
+            setupAutocomplete('erail-adv-train', 'erailTrains');
 
             const savedSrc = localStorage.getItem('erail-saved-src');
             const savedDst = localStorage.getItem('erail-saved-dst');
@@ -688,7 +705,7 @@ function injectAppUI() {
             const extractCode = (raw) => raw.includes('-') ? raw.split('-')[1].trim().toUpperCase() : raw.toUpperCase();
             const B = extractCode(bRaw);
             const C = extractCode(cRaw);
-            const trainNo = extractCode(trainRaw);
+            const trainNo = trainRaw.includes('-') ? trainRaw.split('-')[0].trim() : trainRaw.toUpperCase();
 
             const [y, m, d] = dateRaw.split('-');
             const userDateFormatted = `${d}-${m}-${y}`;
@@ -735,7 +752,7 @@ function injectAppUI() {
                 const jDay = String(journeyDateObj.getDate()).padStart(2, '0');
                 const jMon = String(journeyDateObj.getMonth() + 1).padStart(2, '0');
                 const jYear = journeyDateObj.getFullYear();
-                const baseDate = `${jDay}-${jMon}-${jYear}`;
+                let baseDate = `${jDay}-${jMon}-${jYear}`;
 
                 resDiv.innerHTML = `<div style="color: #a1c4fd; font-weight: 500;">🚉 Synchronizing master schedule path for ${trainNo} - ${trainName}...</div>`;
 
@@ -750,6 +767,13 @@ function injectAppUI() {
                 if (B_idx === -1) B_idx = 0;
                 if (C_idx === -1) C_idx = D_idx;
 
+                if (B_idx >= C_idx) {
+                    resDiv.innerHTML = `<div style="color: #ff8a80; padding:12px;">❌ Invalid Route Direction: Train ${trainNo} technically travels from ${schData.stationList[0].stationCode} to ${schData.stationList[D_idx].stationCode}. It does not run backwards from ${B} to ${C}. Please flip your inputs!</div>`;
+                    advBtn.innerText = "Search Extended Route";
+                    advBtn.classList.remove('loading');
+                    return;
+                }
+
                 let A = B;
                 let D = C;
                 if (schData.stationList && schData.stationList.length > 0) {
@@ -762,16 +786,24 @@ function injectAppUI() {
                 const results = [];
 
                 const getqDate = (idxSrc) => {
-                    if (idxSrc === A_idx) return baseDate;
+                    // Always calculate relative to the user's explicitly searched Boarding Date
                     let dayB = parseInt(schData.stationList[B_idx].dayCount || 1);
                     let daySrc = parseInt(schData.stationList[idxSrc].dayCount || 1);
+
+                    // If Boarding is on Day 2, and we search backwards to Day 1, offset is -1 day!
                     let offset = daySrc - dayB;
+
                     let [d, m, y] = userDateFormatted.split('-');
                     let dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
                     if (isNaN(dateObj)) return userDateFormatted;
+
                     dateObj.setDate(dateObj.getDate() + offset);
                     return `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
                 };
+
+                // CRITICAL FIX: BaseDate MUST be exactly the calculated master origin date based on the user's Boarding offset!
+                // Do NOT rely blindly on `t.journeyDate` as that might break for offset day traces.
+                baseDate = getqDate(A_idx);
 
                 const checkRoute = async (idxSrc, idxDst, label, isDirect = false) => {
                     if (idxSrc >= idxDst) return null;
@@ -887,8 +919,11 @@ function injectAppUI() {
                 const baseResult = results.find(r => r.src === B && r.dst === C);
 
                 let html = `
-                    <div style="font-size: 15px; font-weight: 600; margin-bottom: 12px; color: #fff; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        🛡️ Expansion Traces for: ${trainNo} ${trainName} (${cls}) on ${userDateFormatted}
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 15px; font-weight: 600; color: #fff;">
+                            🛡️ Expansion Traces for: ${trainNo} ${trainName} (${cls}) on ${userDateFormatted}
+                        </div>
+                        <button class="icon-btn" onclick="document.getElementById('erail-adv-results').style.display='none';" title="Close Expansion Traces">✕</button>
                     </div>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
                 `;
@@ -981,6 +1016,26 @@ function injectAppUI() {
                 advBtn.innerText = "Search Extended Route";
                 advBtn.classList.remove('loading');
             }
+        });
+    }
+
+    const resetBtn = document.getElementById('erail-reset-btn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            const inputs = ['erail-src', 'erail-dst', 'erail-pnr', 'erail-adv-train', 'erail-adv-src', 'erail-adv-dst'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+
+            const resBoxes = ['erail-results-container', 'erail-adv-results', 'erail-pnr-results'];
+            resBoxes.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+
+            localStorage.removeItem('erail-saved-src');
+            localStorage.removeItem('erail-saved-dst');
         });
     }
 
