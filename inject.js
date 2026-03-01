@@ -528,7 +528,7 @@ function injectAppUI() {
                             <input type="text" id="erail-adv-dst" autocomplete="off" placeholder="Dest (e.g. GKP)" style="width: 140px; padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white;">
                         </div>
                         <select id="erail-adv-class" style="padding: 6px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white;">
-                            <option value="1A">1A</option><option value="2A">2A</option><option value="3A">3A</option><option value="SL" selected>SL</option><option value="CC">CC</option><option value="2S">2S</option>
+                            <option value="1A">1A</option><option value="2A">2A</option><option value="3A">3A</option><option value="3E">3E</option><option value="SL" selected>SL</option><option value="CC">CC</option><option value="2S">2S</option>
                         </select>
                         <button class="submit-btn" id="erail-adv-btn" style="background: #e91e63;" disabled>Search Extended Route</button>
                     </div>
